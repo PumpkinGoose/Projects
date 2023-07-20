@@ -25,5 +25,5 @@ for i in range(nr_numbers):
   single_list.append(numbers[random.randint(0, len(numbers)-1)])
 
 random.shuffle(single_list)
-strung_out = "".join(single_list)
-print(strung_out)
+final_string = "".join(single_list)
+print(final_string)
