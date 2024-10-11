@@ -1,0 +1,46 @@
+telegram:
+  WAF-10k-in-10min_0:
+    dest: "telegram_bot_id"
+    body: "<b>Alerta: {0}</b> \nEventos: {1} \n\nIP: {2} \n\n{3}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.num_hits"
+      - "alert.extra_data.ip_client_keyword"
+      - "cti"
+  WAF-10k-in-120min_0:
+    dest: "telegram_bot_id"
+    body: "<b>Alerta: {0}</b> \nEventos: {1} \n\nIP: {2} \n\n{3}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.num_hits"
+      - "alert.extra_data.ip_client_keyword"
+      - "cti"
+  WAF-scan-tool-detected_0:
+    dest: "telegram_bot_id"
+    body: "<b>Alerta: {0}</b> \n\nIP: {1} \n\n{2}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.ip_client"
+      - "cti"
+email:
+  WAF-10k-in-10min_0:
+    dest: "sample@despegar.com"
+    body: "<h2>Alerta: {0}</h2> \nEventos: {1} \n\nIP: {2} \n\n{3}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.num_hits"
+      - "alert.extra_data.ip_client_keyword"
+      - "cti"
+  WAF-10k-in-120min_0:
+    dest: "sample@despegar.com"
+    body: "<h2>Alerta: {0}</h2> \nEventos: {1} \n\nIP: {2} \n\n{3}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.num_hits"
+      - "alert.extra_data.ip_client_keyword"
+      - "cti"
+    body: "<h2>Alerta: {0}</h2> \n\nIP: {1} \n\n{2}"
+    vars:
+      - "alert.rule_name"
+      - "alert.extra_data.ip_client"
+      - "cti"
