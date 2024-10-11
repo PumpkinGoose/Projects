@@ -1,0 +1,39 @@
+# ANSI escape sequences for color
+#               NORMAL   LIGHT    BOLD     BKG      LIGHT_BKG
+# GRAYS =       30m      90m
+# RED =         31m      91m      1;31m    41m      101m
+# GREEN =       32m      92m      1;32m    42m      102m
+# YELLOW =      33m      93m      1;33m    43m      103m
+# BLUE =        34m      94m      1;34m    44m      104m
+# MAGENTA =     35m      95m      1;35m    45m      105m
+# CYAN =        36m      96m      1;36m    46m      106m
+# WHITE =       37m      97m      1;37m    47m      107m
+# BOLD = 1m, ITALIC = 3m, UNDERLINE = 4m, BLINK = 5m, INVERTED = 7m
+
+current_theme: classic
+themes:
+  classic:
+    frame: 94m
+    text1: 93m
+    text2: 92m
+    text3: 1;3;37m
+  cold:
+    frame: 96m
+    text1: 97m
+    text2: 94m
+    text3: 1;96m
+  default:
+    frame: 37m
+    text1: 37m
+    text2: 37m
+    text3: 37m
+  hot:
+    frame: 91m
+    text1: 93m
+    text2: 31m
+    text3: 1;3;31m
+  vivid:
+    frame: 1;32m
+    text1: 93m
+    text2: 1;31m
+    text3: 1;92m
