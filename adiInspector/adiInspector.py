@@ -2,7 +2,7 @@
 
 # -About-------------------------------------------------------------------------------
 
-# Version 17
+# Version 18
 # Gustavo Pico Bosch, April 2024 (Rev. October 2024)
 # Option -h, --help          displays a brief help menu
 # Option -b, --build         takes in ADI.tsv and builds data file
@@ -41,6 +41,13 @@ COL_SECT = 8
 COL_BOSS = 11
 COL_DEPT = 30
 
+SELECTED_THEME = None
+C_FRAME = None
+C_TEXT_1 = None
+C_TEXT_2 = None
+C_TITLE = None
+ENDC = "\033[0m"  # Reset color
+
 CONFIG_COMMENTS = """# ANSI escape sequences for color
 #               NORMAL   LIGHT    BOLD     BKG      LIGHT_BKG
 # GRAYS =       30m      90m
@@ -70,6 +77,29 @@ def check_file_age(file_path):
     creation_date = datetime.fromtimestamp(creation_time)
     if datetime.now() - creation_date > timedelta(days=30):
         print(f"\nWARNING!: {file_path} is over a month old!\nGet the latest ADI!\n")
+
+
+# Load the saved theme and theme definitions
+def load_config():
+    with open(ADI_CONFIG_FILE, 'r') as file:
+        return yaml.safe_load(file)
+
+
+# Get the currently active theme
+def get_theme():
+    config = load_config()
+    theme_name = config.get("current_theme", "default")
+    return config["themes"].get(theme_name, config["themes"]["default"])
+
+
+# Function to initialize theme variables
+def initialize_theme():
+    global SELECTED_THEME, C_FRAME, C_TEXT_1, C_TEXT_2, C_TITLE
+    SELECTED_THEME = get_theme()
+    C_FRAME = "\033[" + SELECTED_THEME["frame"]
+    C_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
+    C_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
+    C_TITLE = "\033[" + SELECTED_THEME["text3"]
 
 
 def load_data_file(file_name):
@@ -191,7 +221,7 @@ def print_frame(result, peers, subs, full_strings=False):
     ingress_dt = datetime.strptime(ingress_date, "%d/%m/%Y")  # Adjust format if needed
     current_dt = datetime.now()
     days_in_company = (current_dt - ingress_dt).days
-    titles = [{"Country":"CTRY", "Name": f"Started on: {ingress_date} ({days_in_company} days)", "Division": "#DIVISION", "Puesto": "SENIORITY", "Mail": "E-Mail Address @"}]
+    titles = [{"Country":"CTRY", "Name": f"Started on: {ingress_date} ({days_in_company} days)", "Division": "#DIVISION", "Position": "SENIORITY", "Mail": "E-Mail Address @"}]
     # Catches match
     target = [result[-1]]
     # Iterates through peers list to remove the match (otherwise match is shown as peer of itself)
@@ -209,7 +239,7 @@ def print_frame(result, peers, subs, full_strings=False):
 # Prints data blocks
 def print_block(header, list, full_strings=False):
     # Extracts widths for each column
-    name_width, Division_width, puesto_width, mail_width = CANVAS_PARAMS
+    name_width, Division_width, position_width, mail_width = CANVAS_PARAMS
     # Prints section header and line
     print(f"{C_TITLE}{header}{ENDC}" + f"{C_FRAME}={ENDC}" * (sum(CANVAS_PARAMS) - len(header) + 13))
     # When list is empty, indicate there's no results for it
@@ -218,20 +248,20 @@ def print_block(header, list, full_strings=False):
     # Otherwise extract values to prepare for print
     else:
         for item in list:
-            name = f"[{item['Country']}] {item['Name'].title()}"
-            Division = item['Division'].title()
-            puesto = item['Puesto'].title()
-            mail = item['Mail']
+            name = f'[{item["Country"]}] {item["Name"].title()}'
+            Division = item["Division"].title()
+            position = item["Position"].title()
+            mail = item["Mail"]
             # This bit crops strings to avoid messing with formatting (overridden with -f, --full_strings)
             if not full_strings:
                 name = crop_string(name, name_width)
                 Division = crop_string(Division, Division_width)
-                puesto = crop_string(puesto, puesto_width)
+                position = crop_string(position, position_width)
                 mail = crop_string(mail, mail_width)
             # Prints item data
-            print(f"    {C_TEXT_1}{name:<{name_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_2}{Division:<{Division_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}{puesto:<{puesto_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}[{mail}]{ENDC}")
+            print(f"    {C_TEXT_1}{name:<{name_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_2}{Division:<{Division_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}{position:<{position_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}[{mail}]{ENDC}")
     # Prints end-of-block line
-    print(f"{C_FRAME}={ENDC}" * (name_width + Division_width + puesto_width + mail_width + 13))
+    print(f"{C_FRAME}={ENDC}" * (name_width + Division_width + position_width + mail_width + 13))
 
 
 # Crops strings that exceed column width
@@ -295,7 +325,7 @@ def tree_builder(boss, entries):
             employee_data["DateOfBirth"] = replace_spanish_characters(seg_entry[COL__DOB])
             employee_data["Country"] = replace_spanish_characters(seg_entry[COL_CTRY].upper())
             employee_data["Ingress"] = replace_spanish_characters(seg_entry[COL_INGR])
-            employee_data["Puesto"] = replace_spanish_characters(seg_entry[COL_SENI].lower())
+            employee_data["Position"] = replace_spanish_characters(seg_entry[COL_SENI].lower())
             employee_data["Division"] = replace_spanish_characters(seg_entry[COL_SECT].lower())
             employee_data["Department"] = replace_spanish_characters(seg_entry[COL_DEPT].lower())
             employee_data["Mail"] = replace_spanish_characters(seg_entry[COL_MAIL].lower())
@@ -353,28 +383,6 @@ def theme_manager():
         print("Invalid theme name. No changes made.")
 
 
-# Load the saved theme and theme definitions
-def load_config():
-    with open(ADI_CONFIG_FILE, 'r') as file:
-        return yaml.safe_load(file)
-
-
-# Get the currently active theme
-def get_theme():
-    config = load_config()
-    theme_name = config.get("current_theme", "default")
-    return config["themes"].get(theme_name, config["themes"]["default"])
-
-
-# These are declared here because they need to be global, but also have to be after get_theme()
-SELECTED_THEME = get_theme()
-C_FRAME = "\033[" + SELECTED_THEME["frame"]
-C_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
-C_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
-C_TITLE = "\033[" + SELECTED_THEME["text3"]
-ENDC = "\033[0m"  # Reset color
-
-
 # -Main and argument parser------------------------------------------------------------
 
 
@@ -397,6 +405,7 @@ def main():
     parser.add_argument("-f", "--full_strings", action="store_true", help="show full strings without cropping (default crops overflow)")
 
     args = parser.parse_args()
+    initialize_theme()
 
     if args.build:
         build_org()
