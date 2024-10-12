@@ -135,32 +135,32 @@ def filter_tree_by_category(tree, filtr, value):
 def print_stats(statistics, title, category, filtr, value):
     width = 50
     print("\n ")
-    print(f"  {COL_TEXT_3}{title} by {category.title()}{ENDC}{COL_FRAME}" + "_" * (width - (len(title) + len(category)) - 8))
+    print(f"  {C_TITLE}{title} by {category.title()}{ENDC}{C_FRAME}" + "_" * (width - (len(title) + len(category)) - 8))
     if filtr:
-        print(f"  {COL_TEXT_3}{filtr.title()}: {value.title()}{ENDC}{COL_FRAME}" + "_" * (width - (len(filtr) + len(value)) - 6))
+        print(f"  {C_TITLE}{filtr.title()}: {value.title()}{ENDC}{C_FRAME}" + "_" * (width - (len(filtr) + len(value)) - 6))
     for key, count in statistics.items():
         dots = '_' * (width - 4 - len(key) - len(str(count)))
-        print(f"  {COL_TEXT_1}{key.title()}{ENDC}{COL_FRAME}{dots}{ENDC}{COL_TEXT_2}{count}{ENDC}")
+        print(f"  {C_TEXT_1}{key.title()}{ENDC}{C_FRAME}{dots}{ENDC}{C_TEXT_2}{count}{ENDC}")
     print(" ")
 
 
 def print_stats_with_bars(statistics, title, category, filtr, value):
-    width = 70
+    width = 75
     max_count = max(statistics.values()) if statistics else 1
     total_count = sum(statistics.values()) if statistics else 1
     max_key_length = max(len(key) for key in statistics.keys())
 
     print("\n ")
-    print(f"  {COL_TEXT_3}{title} by {category.title()}{ENDC}{COL_FRAME}" + "_" * (width - (len(title) + len(category)) - 8))
+    print(f"  {C_TITLE}{title} by {category.title()}{ENDC}{C_FRAME}" + "_" * (width - (len(title) + len(category)) - 8))
     if filtr:
-        print(f"  {COL_TEXT_3}{filtr.title()}: {value.title()}{ENDC}{COL_FRAME}" + "_" * (width - (len(filtr) + len(value)) - 6))
+        print(f"  {C_TITLE}{filtr.title()}: {value.title()}{ENDC}{C_FRAME}" + "_" * (width - (len(filtr) + len(value)) - 6))
     
     for key, count in statistics.items():
         bar_length = max(1, int((count / max_count) * (width - max_key_length - 19))) if count > 0 else 0
-        bar_char = f'{COL_FRAME}▐{ENDC}'
+        bar_char = f'{C_FRAME}▐{ENDC}'
         bar = bar_char * bar_length
         percentage = (count / total_count) * 100
-        print(f"  {COL_TEXT_1}{key.title():<{max_key_length + 2}}{ENDC}{COL_FRAME}{bar} {COL_TEXT_2}{count:<4}{ENDC} {COL_TEXT_3}{percentage:.1f}%{ENDC}")
+        print(f"  {C_TEXT_1}{key.title():<{max_key_length + 2}}{ENDC}{C_FRAME}{bar} {C_TEXT_2}{count:<4}{ENDC} {C_TITLE}{percentage:.1f}%{ENDC}")
     
     print(" ")
 
@@ -192,26 +192,26 @@ def module_selector():
 
     while True:
         # Display the menu
-        print(f"\n{COL_TEXT_3}Menu:{ENDC}")
+        print(f"\n{C_TITLE}Menu:{ENDC}")
         for key, value in options.items():
-            print(f"  {COL_TEXT_2}{key}{ENDC}. {COL_TEXT_1}{value}{ENDC}")
+            print(f"  {C_TEXT_2}{key}{ENDC}. {C_TEXT_1}{value}{ENDC}")
 
-        choice = input(f"\n{COL_TEXT_1}Select an option{ENDC} {COL_TEXT_2}(0 to exit){ENDC}: ").strip()
+        choice = input(f"\n{C_TEXT_1}Select an option{ENDC} {C_TEXT_2}(0 to exit){ENDC}: ").strip()
 
         if choice == '0':
             print("Exiting...")
             break
 
         elif choice in ('1', '2'):
-            print(f"{COL_TEXT_3}\n===Count Employees==={ENDC}")
-            category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            print(f"{C_TITLE}\n===Count Employees==={ENDC}")
+            category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
             while not category:
                 print("Category cannot be blank. Please enter a valid term.")
-                category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
-            filtr = input(f"\n{COL_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
+                category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            filtr = input(f"\n{C_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
             value = ""
             if filtr:
-                value = input(f"\n{COL_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
+                value = input(f"\n{C_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
             subtree = filter_tree_by_category(tree[0], filtr, value)
             country_stats = count_employees(subtree, category)
             if choice == '1':
@@ -220,11 +220,11 @@ def module_selector():
                 print_stats_with_bars(country_stats, "Employee Count", category, filtr, value)
 
         elif choice in ('3', '4'):
-            print(f"{COL_TEXT_3}\n===Age Brackets==={ENDC}")
-            filtr = input(f"\n{COL_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
+            print(f"{C_TITLE}\n===Age Brackets==={ENDC}")
+            filtr = input(f"\n{C_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
             value = ""
             if filtr:
-                value = input(f"\n{COL_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
+                value = input(f"\n{C_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
             subtree = filter_tree_by_category(tree[0], filtr, value)
             age_bracket_stats = cat_by_age_brackets(subtree)
             if choice == '3':
@@ -233,15 +233,15 @@ def module_selector():
                 print_stats_with_bars(age_bracket_stats, "Age Brackets", "", filtr, value)
 
         elif choice in ('5', '6'):
-            print(f"{COL_TEXT_3}\n===Average Retention==={ENDC}")
-            category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            print(f"{C_TITLE}\n===Average Retention==={ENDC}")
+            category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
             while not category:
                 print("Category cannot be blank. Please enter a valid term.")
-                category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
-            filtr = input(f"\n{COL_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
+                category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            filtr = input(f"\n{C_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
             value = ""
             if filtr:
-                value = input(f"\n{COL_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
+                value = input(f"\n{C_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
             subtree = filter_tree_by_category(tree[0], filtr, value)
             country_stats = average_retention_by_category(subtree, category)
             if choice == '5':
@@ -250,20 +250,20 @@ def module_selector():
                 print_stats_with_bars(country_stats, "Average Retention (Yrs)", category, filtr, value)
 
         elif choice in ('7', '8'):
-            print(f"{COL_TEXT_3}\n===Recent Hires==={ENDC}")
+            print(f"{C_TITLE}\n===Recent Hires==={ENDC}")
             try:
-                months = int(input(f"{COL_TEXT_1}Enter the number of months{ENDC}: ").strip())
+                months = int(input(f"{C_TEXT_1}Enter the number of months{ENDC}: ").strip())
             except ValueError:
                 print("Invalid input. Please enter a number.")
                 continue
-            category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
             while not category:
                 print("Category cannot be blank. Please enter a valid term.")
-                category = input(f"\n{COL_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
-            filtr = input(f"\n{COL_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
+                category = input(f"\n{C_TEXT_1}Categorize by (cannot be blank){ENDC}: ").strip()
+            filtr = input(f"\n{C_TEXT_1}[Optional] Filter by (leave blank for all){ENDC}: ").strip()
             value = ""
             if filtr:
-                value = input(f"\n{COL_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
+                value = input(f"\n{C_TEXT_1}Enter value for '{filtr}'{ENDC}: ").strip()
             subtree = filter_tree_by_category(tree[0], filtr, value)
             country_stats = new_hires_last_months_by_category(subtree, months, category)
             if choice == '7':
@@ -290,10 +290,10 @@ def get_theme():
 
 
 SELECTED_THEME = get_theme()
-COL_FRAME = "\033[" + SELECTED_THEME["frame"]
-COL_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
-COL_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
-COL_TEXT_3 = "\033[" + SELECTED_THEME["text3"]
+C_FRAME = "\033[" + SELECTED_THEME["frame"]
+C_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
+C_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
+C_TITLE = "\033[" + SELECTED_THEME["text3"]
 ENDC = "\033[0m"  # Reset color
 
 
