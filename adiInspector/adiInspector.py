@@ -2,7 +2,7 @@
 
 # -About-------------------------------------------------------------------------------
 
-# Version 16
+# Version 17
 # Gustavo Pico Bosch, April 2024 (Rev. October 2024)
 # Option -h, --help          displays a brief help menu
 # Option -b, --build         takes in ADI.tsv and builds data file
@@ -72,82 +72,57 @@ def check_file_age(file_path):
         print(f"\nWARNING!: {file_path} is over a month old!\nGet the latest ADI!\n")
 
 
-# Single search function (non-recurrent)
+def load_data_file(file_name):
+    try:
+        with open(file_name, 'r') as js:
+            return json.load(js)
+    except Exception as e:
+        print(f"Error loading data file {file_name}: {e}")
+        return None
+
+
+def search_and_display(tree, search_input, full_strings):
+    if '@' in search_input:
+        all_matches = find_in_tree(tree, search_input.replace('@', ''), search_by="email")
+    elif '#' in search_input:
+        all_matches = find_in_tree(tree, search_input.replace('#', ''), search_by="division")
+    else:
+        all_matches = find_in_tree(tree, search_input, search_by="name")
+
+    search_by = "email" if '@' in search_input else "division" if search_input.startswith("#") else "name"
+    chosen_match = choose_match(all_matches, search_by)
+
+    if chosen_match:
+        result, peers, subs = chosen_match
+        print_frame(result, peers, subs, full_strings)
+    else:
+        print("No matches found\n")
+
+
 def search_org(full_strings):
-    try:
-        # Read and load data file
-        with open(JSON_DATA_FILE, 'r') as js:
-            tree = json.load(js)
-        # Ask user for term to search
-        search_input = input(f"\n{COL_FRAME}Enter a{COL_TEXT_2} name, email[@], {COL_FRAME}or {COL_TEXT_2}[#]division {COL_FRAME}to search: {ENDC}{COL_TEXT_1}").strip()
-        print(f"{ENDC}")
-        # Discern between email, name, and division lookups
-        if '@' in search_input:
-            all_matches = find_in_tree(tree, search_input, search_by="email")
-        elif search_input.startswith("#"):
-            search_input = search_input[1:]  # Remove '#' character
-            all_matches = find_in_tree(tree, search_input, search_by="division")
-        else:
-            all_matches = find_in_tree(tree, search_input, search_by="name")
-        
-        chosen_match = choose_match(all_matches, search_by="email" if '@' in search_input else "division" if search_input.startswith("#") else "name")
-        
-        # If found, show results through print_frame(), otherwise warn user
-        if chosen_match:
-            result, peers, subs = chosen_match
-            print_frame(result, peers, subs, full_strings)
-        else:
-            print("No matches found\n")
-    # Basic error handling, to be improved
-    except KeyboardInterrupt:
-        print("\nOperation canceled by user.")
-    except Exception as e:
-        print(f"Couldn't find data file named {JSON_DATA_FILE}. Error: {e}")
+    tree = load_data_file(JSON_DATA_FILE)
+    if tree is None:
+        return
+    
+    search_input = input(f"\n{C_FRAME}Enter a{C_TEXT_2} name, email[@], {C_FRAME}or {C_TEXT_2}[#]division {C_FRAME}to search: {ENDC}{C_TEXT_1}").strip()
+    print(f"{ENDC}")
+    
+    search_and_display(tree, search_input, full_strings)
 
 
-# Multiple search option (recurrent, "exit" to exit loop)
 def explore_org(full_strings):
-    try:
-        # Read and load data file
-        with open(JSON_DATA_FILE, 'r') as js:
-            tree = json.load(js)
-        
-        # Loops the search until "exit" input
-        while True:
-            print('\n')
-            # Ask user for term to search or "exit" to quit
-            search_input = input(f"{COL_FRAME}Enter a{COL_TEXT_2} name, email[@], {COL_FRAME}or {COL_TEXT_2}[#]division {COL_FRAME}to search (or 'exit'):  {ENDC}{COL_TEXT_1}").strip()
-            print(f"{ENDC}")
-            if search_input.lower() == 'exit':
-                break
+    tree = load_data_file(JSON_DATA_FILE)
+    if tree is None:
+        return
 
-            # Makes sure to grab a fresh copy each time
-            tree_copy = copy.deepcopy(tree)
-
-            # Discern between email, name, or division lookups
-            if '@' in search_input:
-                # Email search
-                all_matches = find_in_tree(tree_copy, search_input, search_by="email")
-            elif search_input.startswith("#"):
-                search_input = search_input[1:]  # Remove '#' character
-                all_matches = find_in_tree(tree_copy, search_input, search_by="division")
-            else:
-                # Name search (one-word input)
-                all_matches = find_in_tree(tree_copy, search_input, search_by="name")
-            
-            # If found, show results through print_frame(), otherwise warn user
-            chosen_match = choose_match(all_matches, search_by="email" if '@' in search_input else "division" if search_input.startswith("#") else "name")
-            print('\n')
-            if chosen_match:
-                result, peers, subs = chosen_match
-                print_frame(result, peers, subs, full_strings=full_strings)
-            else:
-                print("No matches found\n")
-    except KeyboardInterrupt:
-        print("\nOperation canceled by user.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
+    while True:
+        print('\n')
+        search_input = input(f"{C_FRAME}Enter a{C_TEXT_2} name, email[@], {C_FRAME}or {C_TEXT_2}[#]division {C_FRAME}to search (or 'exit'):  {ENDC}{C_TEXT_1}").strip()
+        print(f"{ENDC}")
+        if search_input.lower() == 'exit':
+            break
+        tree_copy = copy.deepcopy(tree)
+        search_and_display(tree_copy, search_input, full_strings)
 
 
 # This is the one that actually paces the tree in search for stuff
@@ -158,9 +133,8 @@ def find_in_tree(current_tree, search_value, boss=None, path=[], search_by="name
         search_terms = search_value.lower().split('.')  # Split terms for partial matching
     else:
         search_terms = search_value.lower().split()  # Split terms for partial matching
-
     for node in current_tree:
-        # Stores node info without subs (so, just that person's info)
+        # Stores node info without subs (so just that person's info)
         clean_node = {k: v for k, v in node.items() if k != "Subordinates"}
 
         # Perform matching depending on the search criteria (name, email, division)
@@ -193,16 +167,16 @@ def choose_match(matches, search_by="name"):
     if len(matches) == 1:
         return matches[0]
     # If matches exist and are more than 1, show selection
-    print(f"\n{COL_FRAME}These are the possible matches: {COL_TEXT_1}")
+    print(f"\n{C_FRAME}These are the possible matches: {C_TEXT_1}")
     print(f"{ENDC}")
     # Prints out numbered list of matches
     for i, match in enumerate(matches):
         # Extracts both name and division to display
         name = match[0][-1]["Name"]
         division = match[0][-1].get("Division", "No division")
-        print(f"{COL_TEXT_1}\t{i+1}. {name} {COL_TEXT_2}[{division.title()}]{ENDC}")
+        print(f"{C_TEXT_1}\t{i+1}. {name} {C_TEXT_2}[{division.title()}]{ENDC}")
     # Ask idiot for choice by match number
-    choice = int(input(f"\n{COL_FRAME}Select an option by number: {COL_TEXT_1}"))
+    choice = int(input(f"\n{C_FRAME}Select an option by number: {C_TEXT_1}"))
     # If bad choice, bail out
     if choice < 1 or choice > len(matches):
         return None
@@ -237,10 +211,10 @@ def print_block(header, list, full_strings=False):
     # Extracts widths for each column
     name_width, Division_width, puesto_width, mail_width = CANVAS_PARAMS
     # Prints section header and line
-    print(f"{COL_TEXT_3}{header}{ENDC}" + f"{COL_FRAME}={ENDC}" * (sum(CANVAS_PARAMS) - len(header) + 13))
+    print(f"{C_TITLE}{header}{ENDC}" + f"{C_FRAME}={ENDC}" * (sum(CANVAS_PARAMS) - len(header) + 13))
     # When list is empty, indicate there's no results for it
     if len(list) == 0:
-        print(f"{COL_TEXT_1}    No results{ENDC}")
+        print(f"{C_TEXT_1}    No results{ENDC}")
     # Otherwise extract values to prepare for print
     else:
         for item in list:
@@ -255,9 +229,9 @@ def print_block(header, list, full_strings=False):
                 puesto = crop_string(puesto, puesto_width)
                 mail = crop_string(mail, mail_width)
             # Prints item data
-            print(f"    {COL_TEXT_1}{name:<{name_width}}{ENDC} {COL_FRAME}||{ENDC} {COL_TEXT_2}{Division:<{Division_width}}{ENDC} {COL_FRAME}||{ENDC} {COL_TEXT_1}{puesto:<{puesto_width}}{ENDC} {COL_FRAME}||{ENDC} {COL_TEXT_1}[{mail}]{ENDC}")
+            print(f"    {C_TEXT_1}{name:<{name_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_2}{Division:<{Division_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}{puesto:<{puesto_width}}{ENDC} {C_FRAME}||{ENDC} {C_TEXT_1}[{mail}]{ENDC}")
     # Prints end-of-block line
-    print(f"{COL_FRAME}={ENDC}" * (name_width + Division_width + puesto_width + mail_width + 13))
+    print(f"{C_FRAME}={ENDC}" * (name_width + Division_width + puesto_width + mail_width + 13))
 
 
 # Crops strings that exceed column width
@@ -394,10 +368,10 @@ def get_theme():
 
 # These are declared here because they need to be global, but also have to be after get_theme()
 SELECTED_THEME = get_theme()
-COL_FRAME = "\033[" + SELECTED_THEME["frame"]
-COL_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
-COL_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
-COL_TEXT_3 = "\033[" + SELECTED_THEME["text3"]
+C_FRAME = "\033[" + SELECTED_THEME["frame"]
+C_TEXT_1 = "\033[" + SELECTED_THEME["text1"]
+C_TEXT_2 = "\033[" + SELECTED_THEME["text2"]
+C_TITLE = "\033[" + SELECTED_THEME["text3"]
 ENDC = "\033[0m"  # Reset color
 
 
