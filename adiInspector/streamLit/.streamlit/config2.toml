@@ -1,0 +1,14 @@
+[theme]
+primaryColor = "#4BE0EA"
+backgroundColor = "#1B2323"
+secondaryBackgroundColor = "#3B3B3B"
+textColor = "#ffffff"
+font = "sans serif"
+
+#4BE0EA cyan light
+#257177 cyan dark
+
+#3B3B3B background 
+#1B2323 more cyany
+
+#EE4949 red eye
