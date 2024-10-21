@@ -6,6 +6,7 @@ JSON_DATA_FILE = 'adi_data_file.json'
 
 st.set_page_config(layout="wide")
 
+
 def load_data_file(file_name):
     try:
         with open(file_name, 'r') as js:
@@ -13,6 +14,7 @@ def load_data_file(file_name):
     except Exception as e:
         st.error(f"Error loading data file {file_name}: {e}")
         return None
+
 
 def search_and_display(tree, query, search_type):
     if search_type == "Email":
@@ -26,6 +28,7 @@ def search_and_display(tree, query, search_type):
         st.warning("No matches found.")
         return []
     return all_matches
+
 
 def search_org(query, search_type):
     tree = load_data_file(JSON_DATA_FILE)
@@ -43,17 +46,17 @@ def find_in_tree(current_tree, search_value, boss=None, path=[], search_by="name
         clean_node = {k: v for k, v in node.items() if k != "Subordinates"}
 
         if search_by == "name" and compare_strings(search_terms, node["Name"].lower()):
-            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"]] if boss else []  
+            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"] if peer["Name"] != node["Name"]] if boss else []  
             subordinates = node.get("Subordinates", [])
             matches.append((path + [clean_node], peers, subordinates))
 
         elif search_by == "email" and compare_strings(search_terms, node["Mail"].lower()):
-            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"]] if boss else []
+            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"] if peer["Name"] != node["Name"]] if boss else []
             subordinates = node.get("Subordinates", [])
             matches.append((path + [clean_node], peers, subordinates))
 
         elif search_by == "division" and compare_strings(search_terms, node["Division"].lower()):
-            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"]] if boss else []
+            peers = [{k: v for k, v in peer.items() if k != "Subordinates"} for peer in boss["Subordinates"] if peer["Name"] != node["Name"]] if boss else []
             subordinates = node.get("Subordinates", [])
             matches.append((path + [clean_node], peers, subordinates))
 
@@ -63,28 +66,29 @@ def find_in_tree(current_tree, search_value, boss=None, path=[], search_by="name
 
     return matches
 
+
 def compare_strings(search_terms, target_string):
     return all(substring in target_string for substring in search_terms)
 
 def display_results(result, col):
     with col:
-        st.write("Chain of Leaders")
+        st.write("Chain of Leads")
         leaders_chain = result[0][:-1]
         if leaders_chain:
             leaders_df = pd.DataFrame(leaders_chain)
-            st.dataframe(leaders_df, use_container_width=True)
+            st.dataframe(leaders_df, use_container_width=True, hide_index=True)
         else:
             st.write("No leaders found.")
 
         st.write("Selected Match")
         match_data = result[0][-1]
         match_df = pd.DataFrame([match_data])
-        st.dataframe(match_df, use_container_width=True)
+        st.dataframe(match_df, use_container_width=True, hide_index=True)
 
         st.write("Peers")
         if result[1]:
             peers_df = pd.DataFrame(result[1])
-            st.dataframe(peers_df, use_container_width=True)
+            st.dataframe(peers_df, use_container_width=True, hide_index=True)
         else:
             st.write("No peers found.")
 
@@ -92,7 +96,7 @@ def display_results(result, col):
         if result[2]:
             subordinates_cleaned = [{k: v for k, v in sub.items() if k != "Subordinates"} for sub in result[2]]
             subordinates_df = pd.DataFrame(subordinates_cleaned)
-            st.dataframe(subordinates_df, use_container_width=True)
+            st.dataframe(subordinates_df, use_container_width=True, hide_index=True)
         else:
             st.write("No subordinates found.")
 
@@ -100,8 +104,8 @@ def display_results(result, col):
 col1, col2 = st.columns([1, 2])
 
 with col1: # Logo and search boxes
-    st.image('logo.png', width = 550)
-    search_type = st.selectbox("Search by", ["Name", "Email", "Division"])
+    st.image('logo.png', use_column_width=True)
+    search_type = st.radio("Search by", ["Name", "Email", "Division"])
     query = st.text_input("Enter your query")
 
 with col2: # Multiple choice and results
